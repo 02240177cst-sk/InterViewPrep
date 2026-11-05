@@ -181,14 +181,14 @@ export async function getStreak(uid: string) {
   return streak;
 }
 
-export async function getWeekly(uid: string) {
-  const db = await getDb();
-  const out: { label: string; value: number }[] = [];
-  for (let i = 6; i >= 0; i--) {
-    const d = new Date();
-    d.setDate(d.getDate() - i);
-    const r = await db.getFirstAsync<{ n: number }>('SELECT COUNT(*) AS n FROM practice_log WHERE uid = ? AND day = ?', [uid, dayKey(d)]);
-    out.push({ label: d.toLocaleDateString('en', { weekday: 'short' }), value: r?.n ?? 0 });
-  }
-  return out;
-}
+// export async function getWeekly(uid: string) {
+//   const db = await getDb();
+//   const out: { label: string; value: number }[] = [];
+//   for (let i = 6; i >= 0; i--) {
+//     const d = new Date();
+//     d.setDate(d.getDate() - i);
+//     const r = await db.getFirstAsync<{ n: number }>('SELECT COUNT(*) AS n FROM practice_log WHERE uid = ? AND day = ?', [uid, dayKey(d)]);
+//     out.push({ label: d.toLocaleDateString('en', { weekday: 'short' }), value: r?.n ?? 0 });
+//   }
+//   return out;
+// }

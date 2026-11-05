@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Alert, Platform, ScrollView, Switch, Text, TouchableOpacity, View } from 'react-native';
-import DateTimePicker from '@react-native-community/datetimepicker';
+import { Alert, Keyboard, Platform, ScrollView, Switch, Text, TouchableOpacity, View } from 'react-native';
 import { useAuth } from '../AuthContext';
 import { Button, Card, Input, Screen } from '../components';
 import { cancelReminder, getReminder, Reminder, scheduleDaily } from '../notifications';
@@ -12,6 +11,8 @@ export default function ProfileScreen({ navigation }: any) {
   const { mode, setMode, colors } = useTheme();
   const [name, setName] = useState(profile?.name ?? '');
   const [msg, setMsg] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [nameMsg, setNameMsg] = useState('');
   const [reminder, setReminder] = useState<Reminder>({ enabled: false, hour: 19, minute: 0 });
   const [showPicker, setShowPicker] = useState(false);
 
@@ -36,12 +37,32 @@ export default function ProfileScreen({ navigation }: any) {
     const ok = await scheduleDaily(next.hour, next.minute);
     if (!ok) Alert.alert('Permission needed', 'Allow notifications for this app in your phone settings.');
   };
-
-  const saveName = async () => {
-    if (!name.trim()) return;
-    try { await updateName(name.trim()); setMsg('Profile updated.'); }
-    catch { setMsg('Could not update. Check your connection.'); }
+   const saveName = async () => {
+    const n = name.trim();
+    if (!n) {
+      Alert.alert('Name required', 'Please enter your name.');
+      return;
+    }
+    Keyboard.dismiss();
+    setSaving(true);
+    setNameMsg('');
+    try {
+      // give up waiting after 10 seconds so the button never hangs
+      await Promise.race([
+        updateName(n),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 10000)),
+      ]);
+      setNameMsg('Saved successfully ✓');
+      //Alert.alert('Saved successfully', 'Your name has been updated.');
+      setTimeout(() => setNameMsg(''), 3000);
+    } catch {
+      Alert.alert('Could not save', 'Check your internet connection and try again.');
+    } finally {
+      setSaving(false);
+    }
   };
+
+  
 
   const sync = async () => {
     const ok = await syncAll(user!.uid);
@@ -63,7 +84,10 @@ export default function ProfileScreen({ navigation }: any) {
         <Card>
           <Text style={{ color: colors.sub }}>{profile?.email ?? user?.email}</Text>
           <Input label='Name' value={name} onChangeText={setName} autoCapitalize='words' />
-          <Button title='Save name' kind='ghost' onPress={saveName} />
+          <Button title='Save name' kind='ghost' onPress={saveName} loading={saving} />
+          {nameMsg ? (
+            <Text style={{ color: colors.success, textAlign: 'center', fontWeight: '700', marginTop: 4 }}>{nameMsg}</Text>
+          ) : null}
         </Card>
 
         <Card>
@@ -84,10 +108,11 @@ export default function ProfileScreen({ navigation }: any) {
               value={new Date(2000, 0, 1, reminder.hour, reminder.minute)}
               mode='time'
               is24Hour
-              onChange={(e, d) => {
+              onValueChange={(_e, d) => {
                 setShowPicker(Platform.OS === 'ios');
-                if (e.type === 'set' && d) pickTime(d);
+                if (d) pickTime(d);
               }}
+              onDismiss={() => setShowPicker(false)}
             />
           )}
         </Card>

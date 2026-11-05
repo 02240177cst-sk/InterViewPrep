@@ -30,15 +30,19 @@ function Tabs() {
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
-        tabBarIcon: ({ color, size }) => <Ionicons name={icons[route.name]} size={size} color={color} />,
-        tabBarActiveTintColor: colors.primary,
-        tabBarStyle: { backgroundColor: colors.card },
-        headerStyle: { backgroundColor: colors.card },
-        headerTintColor: colors.text,
-      })}
+      tabBarIcon: ({ color, size }) => <Ionicons name={icons[route.name]} size={size} color={color} />,
+      tabBarActiveTintColor: colors.primary,
+      tabBarInactiveTintColor: colors.sub,
+      tabBarStyle: { backgroundColor: colors.card, borderTopColor: colors.border },
+      tabBarLabelStyle: { fontSize: 11, fontWeight: '600' },
+      headerStyle: { backgroundColor: colors.card },
+      headerTintColor: colors.text,
+      headerShadowVisible: false,
+      headerTitleStyle: { fontWeight: '700' },
+    })}
     >
-      <Tab.Screen name='Home' component={HomeScreen} options={{ title: 'InterviewPrep' }} />
-      <Tab.Screen name='Mock' component={MockSetupScreen} options={{ title: 'Mock Interview' }} />
+      <Tab.Screen name='Home' component={HomeScreen} options={{ title: 'InterviewPrep', tabBarLabel: 'Home' }} />
+      <Tab.Screen name='Mock' component={MockSetupScreen} options={{ title: 'Mock Interview', tabBarLabel: 'Mock' }} />
       <Tab.Screen name='Bookmarks' component={BookmarksScreen} />
       <Tab.Screen name='Progress' component={ProgressScreen} />
       <Tab.Screen name='Profile' component={ProfileScreen} />

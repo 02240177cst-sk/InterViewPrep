@@ -50,7 +50,11 @@ async function loadProfile(u: User): Promise<Profile> {
       await AsyncStorage.setItem(key, JSON.stringify(p));
       return p;
     }
-    console.log('PROFILE NOT FOUND for uid', u.uid);
+        // first login with no profile document yet: create a normal user profile
+    const fresh: Profile = { name: u.displayName ?? '', email: u.email ?? '', role: 'user' };
+    await setDoc(doc(db, 'users', u.uid), { ...fresh, createdAt: Date.now() });
+    await AsyncStorage.setItem(key, JSON.stringify(fresh));
+    return fresh;
   } catch (e) {
     console.log('PROFILE LOAD ERROR', e);
   }

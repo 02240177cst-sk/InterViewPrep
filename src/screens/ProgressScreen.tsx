@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { ScrollView, Text, View } from 'react-native';
-import { BarChart } from 'react-native-gifted-charts';
+// import { BarChart } from 'react-native-gifted-charts';
 import { useAuth } from '../AuthContext';
 import { Card, Screen } from '../components';
-import { getProgress, getStreak, getWeekly } from '../db';
+
+// import { getProgress, getStreak, getWeekly } from '../db';
+import { getProgress, getStreak } from '../db';
 import { useLoad } from '../hooks';
 import { useTheme } from '../theme';
 
@@ -12,12 +14,12 @@ export default function ProgressScreen() {
   const { colors } = useTheme();
   const [prog, setProg] = useState<Awaited<ReturnType<typeof getProgress>>>({ cats: [], practised: 0, bookmarked: 0 });
   const [streak, setStreak] = useState(0);
-  const [week, setWeek] = useState<{ label: string; value: number }[]>([]);
+  // const [week, setWeek] = useState<{ label: string; value: number }[]>([]);
 
   useLoad(async () => {
     setProg(await getProgress(user!.uid));
     setStreak(await getStreak(user!.uid));
-    setWeek(await getWeekly(user!.uid));
+    // setWeek(await getWeekly(user!.uid));
   });
 
   const stat = (value: number | string, label: string) => (
@@ -54,7 +56,7 @@ export default function ProgressScreen() {
           })}
         </Card>
 
-        <Card>
+        {/* <Card>
           <Text style={{ color: colors.text, fontWeight: '700', marginBottom: 10 }}>Questions practised this week</Text>
           <BarChart
             data={week.map((w) => ({ value: w.value, label: w.label, frontColor: colors.primary }))}
@@ -68,7 +70,7 @@ export default function ProgressScreen() {
             xAxisLabelTextStyle={{ color: colors.sub, fontSize: 11 }}
             isAnimated={false}
           />
-        </Card>
+        </Card> */}
       </ScrollView>
     </Screen>
   );
