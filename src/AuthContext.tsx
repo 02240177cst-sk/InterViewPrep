@@ -20,6 +20,7 @@ type Ctx = {
   logOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
   updateName: (name: string) => Promise<void>;
+  reloadProfile: () => Promise<void>;
 };
 
 const AuthCtx = createContext<Ctx>(null as any);
@@ -49,7 +50,10 @@ async function loadProfile(u: User): Promise<Profile> {
       await AsyncStorage.setItem(key, JSON.stringify(p));
       return p;
     }
-  } catch {}
+    console.log('PROFILE NOT FOUND for uid', u.uid);
+  } catch (e) {
+    console.log('PROFILE LOAD ERROR', e);
+  }
   const cached = await AsyncStorage.getItem(key);
   if (cached) return JSON.parse(cached);
   return { name: u.displayName ?? '', email: u.email ?? '', role: 'user' };
@@ -111,8 +115,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await AsyncStorage.setItem(`profile:${auth.currentUser.uid}`, JSON.stringify(p));
   };
 
+  const reloadProfile = async () => {
+    if (auth.currentUser) setProfile(await loadProfile(auth.currentUser));
+  };
+
   return (
-    <AuthCtx.Provider value={{ user, profile, loading, signUp, logIn, logOut, resetPassword, updateName }}>
+    <AuthCtx.Provider value={{ user, profile, loading, signUp, logIn, logOut, resetPassword, updateName, reloadProfile }}>
       {children}
     </AuthCtx.Provider>
   );

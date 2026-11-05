@@ -8,7 +8,7 @@ import { syncAll } from '../sync';
 import { useTheme } from '../theme';
 
 export default function ProfileScreen({ navigation }: any) {
-  const { user, profile, logOut, updateName } = useAuth();
+  const { user, profile, logOut, updateName, reloadProfile } = useAuth();
   const { mode, setMode, colors } = useTheme();
   const [name, setName] = useState(profile?.name ?? '');
   const [msg, setMsg] = useState('');
@@ -16,6 +16,7 @@ export default function ProfileScreen({ navigation }: any) {
   const [showPicker, setShowPicker] = useState(false);
 
   useEffect(() => { getReminder().then(setReminder); }, []);
+  useEffect(() => { setName(profile?.name ?? ''); }, [profile?.name]);
 
   const timeText = `${String(reminder.hour).padStart(2, '0')}:${String(reminder.minute).padStart(2, '0')}`;
 
@@ -44,6 +45,7 @@ export default function ProfileScreen({ navigation }: any) {
 
   const sync = async () => {
     const ok = await syncAll(user!.uid);
+    await reloadProfile();
     setMsg(ok ? 'Synced with the cloud.' : 'You are offline. Changes will sync automatically later.');
   };
 
