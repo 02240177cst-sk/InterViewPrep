@@ -15,6 +15,7 @@ try {
 } catch {
   console.warn('expo-notifications is not available here (Expo Go). Reminders need a development build.');
 }
+export const notificationsAvailable = () => Notifications !== null;
 
 export type Reminder = { enabled: boolean; hour: number; minute: number };
 

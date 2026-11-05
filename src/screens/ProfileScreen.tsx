@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { Alert, Keyboard, Platform, ScrollView, Switch, Text, TouchableOpacity, View } from 'react-native';
 import { useAuth } from '../AuthContext';
 import { Button, Card, Input, Screen } from '../components';
-import { cancelReminder, getReminder, Reminder, scheduleDaily } from '../notifications';
+import { cancelReminder, getReminder, notificationsAvailable, Reminder, scheduleDaily } from '../notifications';
 import { syncAll } from '../sync';
 import { useTheme } from '../theme';
 
@@ -20,9 +21,15 @@ export default function ProfileScreen({ navigation }: any) {
   useEffect(() => { setName(profile?.name ?? ''); }, [profile?.name]);
 
   const timeText = `${String(reminder.hour).padStart(2, '0')}:${String(reminder.minute).padStart(2, '0')}`;
+  const notAvailable = () =>
+  Alert.alert(
+    'Reminders need a development build',
+    'Expo Go cannot schedule notifications on this phone. Install the development build to use daily reminders.',
+  );
 
   const toggleReminder = async (on: boolean) => {
     if (on) {
+      if (!notificationsAvailable()) return notAvailable();
       const ok = await scheduleDaily(reminder.hour, reminder.minute);
       if (!ok) return Alert.alert('Permission needed', 'Allow notifications for this app in your phone settings.');
     } else {
@@ -32,11 +39,29 @@ export default function ProfileScreen({ navigation }: any) {
   };
 
   const pickTime = async (d: Date) => {
-    const next = { enabled: true, hour: d.getHours(), minute: d.getMinutes() };
+    const next = { enabled: notificationsAvailable(), hour: d.getHours(), minute: d.getMinutes() };
     setReminder(next);
+    if (!notificationsAvailable()) return notAvailable();
     const ok = await scheduleDaily(next.hour, next.minute);
     if (!ok) Alert.alert('Permission needed', 'Allow notifications for this app in your phone settings.');
   };
+
+  // const toggleReminder = async (on: boolean) => {
+  //   if (on) {
+  //     const ok = await scheduleDaily(reminder.hour, reminder.minute);
+  //     if (!ok) return Alert.alert('Permission needed', 'Allow notifications for this app in your phone settings.');
+  //   } else {
+  //     await cancelReminder();
+  //   }
+  //   setReminder({ ...reminder, enabled: on });
+  // };
+
+  // const pickTime = async (d: Date) => {
+  //   const next = { enabled: true, hour: d.getHours(), minute: d.getMinutes() };
+  //   setReminder(next);
+  //   const ok = await scheduleDaily(next.hour, next.minute);
+  //   if (!ok) Alert.alert('Permission needed', 'Allow notifications for this app in your phone settings.');
+  // };
    const saveName = async () => {
     const n = name.trim();
     if (!n) {
@@ -108,10 +133,11 @@ export default function ProfileScreen({ navigation }: any) {
               value={new Date(2000, 0, 1, reminder.hour, reminder.minute)}
               mode='time'
               is24Hour
-              onValueChange={(_e, d) => {
+              onChange={(e, d) => {
                 setShowPicker(Platform.OS === 'ios');
-                if (d) pickTime(d);
+                if (e.type === 'set' && d) pickTime(d);
               }}
+              
               onDismiss={() => setShowPicker(false)}
             />
           )}
